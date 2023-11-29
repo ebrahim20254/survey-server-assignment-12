@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 5000;
@@ -27,9 +27,18 @@ async function run() {
     await client.connect();
 
 
+    const userCollection = client.db('surveyUser').collection('users');
     const surveyCollection = client.db('surveyUser').collection('survey');
     const cartCollection = client.db('surveyUser').collection('carts');
 
+
+    // user related api 
+
+    app.post('/users', async(req, res) => {
+      const user = req.body;
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    })
 
     app.get('/survey', async(req, res) => {
       const result = await surveyCollection.find().toArray();
@@ -49,6 +58,14 @@ async function run() {
       const result = await cartCollection.insertOne(cartItem);
       res.send(result);
     });
+
+
+    app.delete('/carts/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await cartCollection.deleteOne(query);
+      res.send(result);
+    })
 
 
 
