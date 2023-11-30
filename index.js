@@ -25,12 +25,13 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
 
     const userCollection = client.db('surveyUser').collection('users');
     const surveyCollection = client.db('surveyUser').collection('survey');
     const cartCollection = client.db('surveyUser').collection('carts');
+    const chartCollection = client.db('surveyUser').collection('order-stats');
 
 
      // jwt related api
@@ -133,6 +134,33 @@ async function run() {
       res.send(result);
     })
 
+    app.get('/survey/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await surveyCollection.findOne(query);
+      res.send(result);
+    })
+
+    
+    app.patch('/survey/:id', async (req, res) => {
+      const item = req.body;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) }
+      const updatedDoc = {
+        $set: {
+          name: item.title,
+          category: item.category,
+          vote: item.vote,
+          description: item.description,
+          image: item.image,
+        }
+      }
+
+      const result = await surveyCollection.updateOne(filter, updatedDoc)
+      res.send(result);
+    })
+
+
 
     app.post('/survey',verifyToken, verifyAdmin, async (req, res) => {
       const item = req.body;
@@ -169,6 +197,7 @@ async function run() {
       const result = await cartCollection.deleteOne(query);
       res.send(result);
     })
+
 
 
 
